@@ -313,6 +313,27 @@ export function data(name, value) {
     return (dataDefs[name] = new DataProxy(name, context.component));
 };
 
+/**
+ * 操作store内数据，可多次调用
+ *
+ * @param {Function} bindStore 返回的数据
+ * @returns {Object} 返回一个对象：1.包装有this.data 相关数据操作API的对象集合 2.dispose销毁函数 3.actions对象
+ */
+export function mapToData(bindFunc) {
+    if (context.creator) {
+        return;
+    }
+    const mapFunc = function (key, value) {
+        return data(key, value);
+    };
+    const dataHandle = bindFunc(context.component, mapFunc);
+    // 自动销毁
+    onDisposed(() => {
+        dataHandle.dispose();
+    });
+    return dataHandle;
+}
+
 class ComputedProxy {
     constructor(name, component) {
         this.name = name;
